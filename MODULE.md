@@ -28,7 +28,7 @@ park-writing 是一个模块：`module.yaml` 是它的清单，工作台（conte
 | `only` | 否 | 只用在这些形态上：`长文` `长帖` `短帖`，不写就都用 |
 | `may-move` | 否 | 这一步允许挪的东西，目前只有 `first-sentence`（开头把一句挪到最前面）。其他步骤不能挪 |
 | `may-add` | 否 | 这一步允许新加的东西，目前只有 `bridge-sentence`（一句衔接，最多两三句，标出来给他确认） |
-| `on-fail` | 是 | 不过怎么办：`warn` 只标红 / `swap` 自动换下一篇 / `block` 拦住不让存草稿 / `swap-if-ending-unfinished` 结尾没写完才换，其他只标红 |
+| `on-fail` | 是 | 不过怎么办（只对 `verdict` 步骤生效：写、风格步骤过不了关卡，产出直接作废，原文照旧）：`warn` 只标红 / `swap` 自动换下一篇 / `block` 拦住不让存草稿 / `swap-if-ending-unfinished` 结尾没写完才换，其他只标红 |
 
 ## 关卡：工作台用代码执行，模块只能选用、调数字
 

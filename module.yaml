@@ -46,7 +46,7 @@ steps:
     title: 高密度骨架
     group: 写
     status: whole
-    prompt: references/密度.md#息只有四种
+    prompt: references/密度.md          # 整份：逻辑、四种息、文章和口播的区别；这一步只做文章
     does: 找出关键点；每一段付给读者什么（数字、判断、可用的方法、画面）；约每 60 字要有新东西。只标没付息的段，不删
     output: report
     on-fail: warn
