@@ -77,6 +77,7 @@ steps:
     does: 回扣开头那句，或落回「人要先了解自己」；用文中的话，不喊关注、不推课
     output: changes
     fix: edit
+    may-add: bridge-sentence   # 钩子可以是一句新写的话，但只能用文中的词（代码核对）
     on-fail: warn
 
   # ---- 风格 ----
