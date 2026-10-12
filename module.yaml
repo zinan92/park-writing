@@ -1,0 +1,132 @@
+# park-writing 模块清单：工作台只认这个文件。流程有哪几步、顺序、每步读哪一段、过什么关卡，都在这里定。
+# 格式说明见 MODULE.md。改了这里，工作台下一次读就是新的，不用改工作台代码。
+module: park-writing
+version: 1
+
+# 默认流程。顺序固定，用户只能开关（10/9 定的）。工作台里最多存 2 个，这里是出厂的两个。
+flows:
+  流程1:
+    - opening
+    - density
+    - altruism
+    - ending
+    - style
+    - check-pain
+    - check-benefit
+    - check-resonance
+    - check-complete
+    - check-typo
+  流程2:
+    - opening
+    - style
+    - check-complete
+    - check-typo
+
+# 每一步的产出之后都要过的门（约束）。数字是这里定的，工作台另有硬顶，这里写得再松也不会超过它。
+constraints:
+  max-change-pct: 10     # 删和改合计不超过原文的这个百分比；工作台硬顶 10
+  keep-order: true       # 段落顺序和原文一样；开头那一步允许把一句挪到最前面
+  original-words: true   # 只用他的原词，不换说法
+  no-new-facts: true     # 不加原文没有的数字、经历、人名；新写的字每处标出来
+
+steps:
+  # ---- 写 ----
+  opening:
+    title: 开头
+    group: 写
+    status: whole        # whole = 规则已经写好，但还在大文件的一段里，没拆成单独的文件
+    prompt: references/开头.md#三种开头
+    does: 出三个候选（带数字的判断 / 反常识暴论 / 直接说），标推荐；第一句是判断，不铺垫
+    output: article      # article = 改好的整篇；report = 只标不改；verdict = 只判断过不过
+    ask: false           # true = 要他点一个；false = 用推荐的，他在卡片上能换
+    may-move: first-sentence   # 这一步允许挪的东西，其他步不能挪
+    on-fail: warn        # warn 只标红 | swap 自动换下一篇 | block 拦住不让存草稿
+
+  density:
+    title: 高密度骨架
+    group: 写
+    status: whole
+    prompt: references/密度.md#息只有四种
+    does: 找出关键点；每一段付给读者什么（数字、判断、可用的方法、画面）；约每 60 字要有新东西。只标没付息的段，不删
+    output: report
+    on-fail: warn
+
+  altruism:
+    title: 利他与稀缺
+    group: 写
+    status: planned      # planned = 还没写，工作台显示「还没做出来」，按钮灰着
+    prompt: null
+    does: 标出读者读完能拿走什么；标出只有他能讲的点（自己的数字、经历、判断）。缺的提示他补；允许写一句衔接，最多两三句，标出来给他确认
+    output: report
+    may-add: bridge-sentence   # 这一步允许新加的东西（10/12 他定的）
+    on-fail: warn
+
+  ending:
+    title: 结尾钩子
+    group: 写
+    status: whole
+    prompt: references/骨架.md#结尾
+    does: 回扣开头那句，或落回「人要先了解自己」；用文中的话，不喊关注、不推课
+    output: article
+    on-fail: warn
+
+  # ---- 风格 ----
+  style:
+    title: 11 条风格
+    group: 风格
+    status: whole
+    prompt: SKILL.md#第 4 步 整理
+    does: 按 11 点放大（只挪不换词）；改完逐条列出哪几条原文有、做到没有
+    output: article
+    on-fail: warn
+
+  # ---- 查 ----
+  check-pain:
+    title: 有没有真痛点
+    group: 查
+    status: whole
+    prompt: references/QA.md#价值
+    only: [长文, 长帖]
+    does: 开头一屏内，读者能看出这是在解决他的哪个具体问题
+    output: verdict
+    on-fail: warn
+
+  check-benefit:
+    title: 够不够利他
+    group: 查
+    status: whole
+    prompt: references/QA.md#价值
+    only: [长文, 长帖]
+    does: 有没有解法；读完值不值得收藏
+    output: verdict
+    on-fail: warn
+
+  check-resonance:
+    title: 共鸣面够不够大
+    group: 查
+    status: planned
+    prompt: null
+    only: [长文, 长帖]
+    does: 讲的是程序员的事，非程序员能不能看出和自己有关；不够就提示他加一句，允许写一句衔接并标出来
+    output: verdict
+    may-add: bridge-sentence
+    on-fail: warn
+
+  check-complete:
+    title: 完整度五项
+    group: 查
+    status: whole
+    prompt: references/QA.md#完整度
+    only: [长文, 长帖]
+    does: 开头、递进、结尾、编号、指代，站在陌生读者角度逐项打分
+    output: verdict
+    on-fail: swap-if-ending-unfinished   # 结尾没写完的自动换下一篇，其他只标红（10/12 他定的）
+
+  check-typo:
+    title: 错字通顺和导语
+    group: 查
+    status: whole
+    prompt: references/QA.md#只允许改这几种
+    does: 改错字、补不通顺的、导语让人一眼看懂这是什么
+    output: article
+    on-fail: warn
