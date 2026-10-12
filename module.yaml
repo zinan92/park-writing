@@ -4,11 +4,13 @@ module: park-writing
 version: 1
 
 # 默认流程。顺序固定，用户只能开关（10/9 定的）。工作台里最多存 2 个，这里是出厂的两个。
+# 每一步有 round：1 = 第一轮，一次调用，先打分再给「修改清单」（在他的原文上直接改、留痕，他逐条接受）；2 = 第二轮，发前 QA。
+# 一次调用做几步，由 round 决定，不是一步一次（10/12 Park：一个按钮不等于一次调用）。
 flows:
   流程1:
     - opening
     - density
-    - altruism
+    - scarcity
     - ending
     - style
     - check-pain
@@ -34,99 +36,120 @@ steps:
   opening:
     title: 开头
     group: 写
+    round: 1
     status: whole        # whole = 规则已经写好，但还在大文件的一段里，没拆成单独的文件
     prompt: references/开头.md#三种开头
-    does: 出三个候选（带数字的判断 / 反常识暴论 / 直接说），标推荐；第一句是判断，不铺垫
-    output: article      # article = 改好的整篇；report = 只标不改；verdict = 只判断过不过
-    ask: false           # true = 要他点一个；false = 用推荐的，他在卡片上能换
+    does: 第一句是判断，不铺垫；把文中最有力的一句挪到最前面
+    output: changes      # changes = 打分 + 修改清单（直接改，留痕）；article = 改好的整篇；report = 只标不改；verdict = 只判断过不过
+    fix: edit            # edit = 直接改；comment = 只评论、不改稿
     may-move: first-sentence   # 这一步允许挪的东西，其他步不能挪
-    on-fail: warn        # warn 只标红 | swap 自动换下一篇 | block 拦住不让存草稿
+    on-fail: warn
 
   density:
     title: 高密度骨架
     group: 写
+    round: 1
     status: whole
     prompt: references/密度.md          # 整份：逻辑、四种息、文章和口播的区别；这一步只做文章
-    does: 找出关键点；每一段付给读者什么（数字、判断、可用的方法、画面）；约每 60 字要有新东西。只标没付息的段，不删
-    output: report
+    does: 找出关键点；每一段付给读者什么（数字、判断、可用的方法、画面）；约每 60 字要有新东西。没付息的段建议删，删多少受总上限管
+    output: changes
+    fix: edit
     on-fail: warn
 
-  altruism:
-    title: 利他与稀缺
+  scarcity:
+    title: 稀缺
     group: 写
-    status: planned      # planned = 还没写，工作台显示「还没做出来」，按钮灰着
-    prompt: null
-    does: 标出读者读完能拿走什么；标出只有他能讲的点（自己的数字、经历、判断）。缺的提示他补；允许写一句衔接，最多两三句，标出来给他确认
-    output: report
-    may-add: bridge-sentence   # 这一步允许新加的东西（10/12 他定的）
+    round: 1
+    status: split
+    prompt: references/共鸣与稀缺.md#稀缺
+    does: 让读者感觉到只有他能讲这个：把最稀缺的证据（自己的数字、亲历、独有的判断）放显眼；文中没有就提示他补，不编
+    output: changes
+    fix: edit
+    may-add: bridge-sentence   # 这一步允许新加的东西：一句衔接，最多两三句，标出来给他确认（10/12 他定的）
     on-fail: warn
 
   ending:
     title: 结尾钩子
     group: 写
+    round: 1
     status: whole
     prompt: references/骨架.md#结尾
     does: 回扣开头那句，或落回「人要先了解自己」；用文中的话，不喊关注、不推课
-    output: article
+    output: changes
+    fix: edit
     on-fail: warn
 
   # ---- 风格 ----
   style:
     title: 11 条风格
     group: 风格
+    round: 1
     status: whole
     prompt: SKILL.md#第 4 步 整理
-    does: 按 11 点放大（只挪不换词）；改完逐条列出哪几条原文有、做到没有
-    output: article
+    does: 按 11 点放大（只挪不换词）；删口水、加粗重点句
+    output: changes
+    fix: edit
     on-fail: warn
 
-  # ---- 查 ----
+  # ---- 查：先打分，再提修改 ----
   check-pain:
     title: 有没有真痛点
     group: 查
+    round: 1
     status: whole
     prompt: references/QA.md#价值
     only: [长文, 长帖]
-    does: 开头一屏内，读者能看出这是在解决他的哪个具体问题
-    output: verdict
+    does: 开头一屏内，读者能看出这是在解决他的哪个具体问题；不够就把文中最接近的那句挪前或加一句衔接
+    output: changes
+    fix: edit
+    may-add: bridge-sentence
     on-fail: warn
 
   check-benefit:
     title: 够不够利他
     group: 查
+    round: 1
     status: whole
     prompt: references/QA.md#价值
     only: [长文, 长帖]
-    does: 有没有解法；读完值不值得收藏
-    output: verdict
+    does: 有没有解法；读完值不值得收藏；缺的只能提示他补，不编
+    output: changes
+    fix: edit
     on-fail: warn
 
   check-resonance:
     title: 共鸣面够不够大
     group: 查
-    status: planned
-    prompt: null
+    round: 1
+    status: split
+    prompt: references/共鸣与稀缺.md#共鸣面
     only: [长文, 长帖]
-    does: 讲的是程序员的事，非程序员能不能看出和自己有关；不够就提示他加一句，允许写一句衔接并标出来
-    output: verdict
+    does: 讲的是一行的事，别的行的人能不能看出和自己有关；不够就加一句衔接，把受众扩开
+    output: changes
+    fix: edit
     may-add: bridge-sentence
     on-fail: warn
 
   check-complete:
     title: 完整度五项
     group: 查
+    round: 1
     status: whole
     prompt: references/QA.md#完整度
     only: [长文, 长帖]
-    does: 开头、递进、结尾、编号、指代，站在陌生读者角度逐项打分
-    output: verdict
+    does: 开头、递进、结尾、编号、指代，站在陌生读者角度逐项打分；只评论，不替他补内容
+    output: changes
+    fix: comment
     on-fail: swap-if-ending-unfinished   # 结尾没写完的自动换下一篇，其他只标红（10/12 他定的）
 
+  # ---- 第二轮：发前 QA ----
   check-typo:
     title: 错字通顺和导语
     group: 查
+    round: 2
     status: whole
     prompt: references/QA.md#只允许改这几种
-    does: 改错字、补不通顺的、导语让人一眼看懂这是什么
+    does: 改错字、补不通顺的、导语让人一眼看懂这是什么；一处一处列出来，和别的修改一起留痕
     output: article
+    fix: edit
     on-fail: warn
