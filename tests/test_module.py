@@ -74,6 +74,21 @@ class ModuleManifest(unittest.TestCase):
         movers = [sid for sid, s in self.m["steps"].items() if s.get("may-move")]
         self.assertEqual(movers, ["opening"])
 
+    def test_review_items_point_at_real_steps_and_every_step_is_reviewed_once(self) -> None:
+        items = self.m["review"]
+        self.assertEqual([i["id"] for i in items], ["retain", "pain", "density", "benefit", "scarcity", "egg", "tone", "complete", "typo"])
+        self.assertEqual(len({i["title"] for i in items}), len(items))
+        used = [sid for i in items for sid in i["from"]]
+        self.assertEqual(len(used), len(set(used)))  # 一步只算进一项
+        self.assertFalse(set(used) - set(self.m["steps"]))
+        self.assertEqual(set(used), set(self.m["steps"]))  # 每一步都在 9 项里有去处
+
+    def test_post_shoot_reads_the_review_section_of_the_video_frame(self) -> None:
+        shoot = self.m["post-shoot"]
+        path, _, anchor = shoot["prompt"].partition("#")
+        self.assertIsNotNone(section((SKILL / path).read_text(encoding="utf-8"), anchor))
+        self.assertTrue(shoot["title"] and shoot["does"])
+
     def test_groups_run_in_order_write_style_check(self) -> None:
         for name, ids in self.m["flows"].items():
             order = [["写", "风格", "查"].index(self.m["steps"][i]["group"]) for i in ids]
