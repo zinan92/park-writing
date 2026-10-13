@@ -156,3 +156,43 @@ steps:
     output: article
     fix: edit
     on-fail: warn
+
+# ---- 评判清单（10/13 Park 定）：视频和文字同一张 9 项，每项 0–10 分，写一句为什么，指到原文哪一句 ----
+# from = 这一项由哪几步的规则来打分。工作台读这里：第一轮只给 from 里有第一轮步骤的项打分；
+# 所有 from 都是第二轮的项（错字通顺和导语）第一轮不打，工作台显示「发文章前才查」。
+# 清单里没有 review 的老版本：工作台退回原来的六项打分，不报错。
+review:
+  - id: retain
+    title: 留人
+    from: [opening]
+  - id: pain
+    title: 痛点与共鸣
+    from: [check-pain, check-resonance]
+  - id: density
+    title: 密度
+    from: [density]
+  - id: benefit
+    title: 利他
+    from: [check-benefit]
+  - id: scarcity
+    title: 稀缺
+    from: [scarcity]
+  - id: egg
+    title: 鸡蛋
+    from: [ending]
+  - id: tone
+    title: 口气
+    from: [style]
+  - id: complete
+    title: 完整度
+    from: [check-complete]
+  - id: typo
+    title: 错字通顺和导语
+    from: [check-typo]
+
+# ---- 拍后批注（10/13 Park 定）：录完、字幕放进项目后，用同一张清单只打分、只批注，一个字不改 ----
+# 批注写成「下一条要注意的」，下一条口述前提醒他。引用的原话必须在字幕里（工作台逐句核对，对不上的丢掉）。
+post-shoot:
+  title: 拍后批注
+  prompt: references/视频框架.md#评判
+  does: 按 9 项清单给拍完的视频打分，每项指到字幕里的哪一句；最后写 1–5 条「下一条要注意的」。只批注，不改稿，不让他补拍
