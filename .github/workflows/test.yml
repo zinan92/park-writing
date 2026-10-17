@@ -11,8 +11,11 @@ jobs:
     runs-on: [self-hosted, park-mac]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Python 3.12（用 Mac 上的 uv 开一个这次专用的虚拟环境；setup-python 只认 GitHub 自己的机器）
+        run: |
+          echo /opt/homebrew/bin >> "$GITHUB_PATH"
+          /opt/homebrew/bin/uv venv --seed --clear --python 3.12 "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
