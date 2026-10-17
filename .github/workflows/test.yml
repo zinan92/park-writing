@@ -1,11 +1,14 @@
+# 10/17 Park：测试一律跑在 Park 自己的 Mac 上（self-hosted runner，标签 park-mac），不花 GitHub Actions 的钱；
+# 只在 PR 上跑（合并后不再重跑一遍），同一个 PR 推了新提交就取消上一轮。Mac 睡着时检查会排队等它醒。
 name: test
 on:
   pull_request:
-  push:
-    branches: [main]
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, park-mac]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
